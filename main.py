@@ -7,7 +7,7 @@ from docx.shared import Inches
 
 # effective resistance, average shortest path and average edge length
 
-filename = 'C:/Users/adnan/OneDrive/Documents/Complexity_Shokkom_Sharma/img_nodes_2.xlsx'
+filename = '.../Complexity_Shokkom_Sharma/img_nodes_2.xlsx'
 sheet_names = ['img1','img2', 'img1', 'img4','saksham_img1','saksham_img2'] 
 
 # create a new Word document
@@ -83,6 +83,6 @@ for sheet_name in sheet_names:
     document.add_paragraph(f'Total effective resistance: {total_effective_resistance}')
 
 # save the Word document
-document.save('C:/Users/adnan/OneDrive/Documents/Complexity_Shokkom_Sharma/final_result_2.docx')
+document.save('.../Complexity_Shokkom_Sharma/final_result_2.docx')
 
 
