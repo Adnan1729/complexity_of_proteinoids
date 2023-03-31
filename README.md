@@ -1,6 +1,6 @@
 # Title: Morphological and functional complexity of proteinoid microspheres ensembles
 
-Overview
+**Overview**
 
 This code calculates the effective resistance, average shortest path, and average edge length 
 of a graph using the NetworkX library in Python.
@@ -20,7 +20,8 @@ The average shortest path is then calculated by dividing the total shortest path
 [4.3] The code iterates through all the edges in the graph and sums their weights (lengths) as total edge lengths. 
 The average edge length is calculated by dividing the total edge lengths by the number of edges in the graph.
 
-Input Data Processing
+**Input Data Processing**
+
 <img width="212" alt="Screenshot 2023-03-31 114409" src="https://user-images.githubusercontent.com/70011012/229099649-b4c24c91-798b-40d6-8f29-c0645334f804.png">
 
 The xi, yi coordinates and the name of the picture should be laid in the way mentioned above.  
