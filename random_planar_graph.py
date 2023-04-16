@@ -16,12 +16,12 @@ def random_planar_graph(min_nodes, max_nodes):
     G.add_nodes_from(range(n))
 
     while True:
-        u = random.choice(list(G.nodes))
-        v = random.choice(list(G.nodes))
-        if u != v and not G.has_edge(u, v):
-            G.add_edge(u, v)
+        a = random.choice(list(G.nodes))
+        b = random.choice(list(G.nodes))
+        if a != b and not G.has_edge(a, b):
+            G.add_edge(a, b)
             if not is_planar(G):
-                G.remove_edge(u, v)
+                G.remove_edge(a, b)
 
         if len(G.edges) == n * (n - 1) // 2:
             break
