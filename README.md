@@ -123,27 +123,13 @@ The framework calculates nine key complexity metrics:
 ## File Structure
 
 ```
-proteinoid-complexity-analysis/
-├── src/
-│   ├── proteinoid_analysis/
-│   │   ├── __init__.py
-│   │   ├── empirical_analysis.py      # Excel data processing
-│   │   ├── simulation.py              # Monte Carlo simulations  
-│   │   ├── graph_metrics.py           # Complexity calculations
-│   │   ├── delaunay_utils.py          # Triangulation utilities
-│   │   └── visualization.py           # Plotting functions
-├── data/
-│   ├── sample_data.xlsx               # Example experimental data
-│   └── protocol_comparison/           # Protocol-specific datasets
-├── results/
-│   ├── graphs/                        # Generated network visualizations
-│   ├── reports/                       # Auto-generated Word documents
-│   └── analysis_plots/                # Complexity metric plots
-├── tests/
-│   └── test_metrics.py                # Unit tests
-├── requirements.txt
-├── setup.py
-└── README.md
+complexity_of_proteinoids/
+├── Emperical_Graph_Analysis.py
+├── README.md
+├── Random_Graph_Analysis.py
+├── main.py
+├── random_planar_undirected.py
+└── scaled_up.py
 ```
 
 ## Experimental Protocols
