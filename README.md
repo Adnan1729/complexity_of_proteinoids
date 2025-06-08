@@ -215,7 +215,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 For questions about the code or methodology:
-- Adnan Mahmud: [mam255@cantab.ac.uk]
+- Adnan Mahmud: mam255@cantab.ac.uk
 
 ---
 
