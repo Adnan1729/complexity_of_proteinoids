@@ -1,0 +1,41 @@
+# Default configuration for the proteinoid complexity pipeline.
+# Override any of these on the command line or by pointing to a different config file.
+
+paths:
+  raw_data: data/raw/img_nodes_2.xlsx
+  outputs_root: data/outputs
+
+empirical:
+  sheet_names:
+    - img1
+    - img2
+    - img3
+    - img4
+    - saksham_img1
+    - saksham_img2
+
+depercolation:
+  # Fraction of edges randomly removed to measure the depercolation ratio.
+  edge_removal_fraction: 0.9
+  # Whether to compute depercolation on the empirical graph, the fresh
+  # Delaunay triangulation of the empirical node set, or both.
+  # Options: "empirical", "fresh_delaunay", "both"
+  mode: both
+
+random_sweep:
+  num_iterations: 19
+  p_values_start: 0.5
+  p_values_end: 0.9
+  p_values_count: 10
+  min_nodes: 90
+  max_nodes: 100
+  scale: 1200
+
+scaled_up:
+  num_iterations: 5
+  min_nodes: 60
+  max_nodes: 100
+  scale: 1200
+
+reproducibility:
+  seed: 42

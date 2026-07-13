@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proteinoid-complexity"
+version = "0.1.0"
+description = "Morphological and functional complexity analysis of proteinoid microsphere ensembles."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Saksham Sharma" },
+    { name = "Adnan Mahmud" },
+]
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "networkx>=3.2",
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "openpyxl>=3.1",
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+    "seaborn>=0.13",
+    "statsmodels>=0.14",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
