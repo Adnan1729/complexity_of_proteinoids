@@ -39,3 +39,9 @@ scaled_up:
 
 reproducibility:
   seed: 42
+
+empirical_deperc_sweep:
+  p_min: 0.05
+  p_max: 0.95
+  n_steps: 19
+  n_realizations: 50
