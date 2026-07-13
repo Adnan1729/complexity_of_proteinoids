@@ -148,6 +148,40 @@ def plot_overlay(summary: pd.DataFrame, output_path: Path) -> None:
     plt.savefig(output_path, dpi=150)
     plt.close(fig)
 
+def plot_overlay_by_node_count(
+    summary: pd.DataFrame, node_counts: dict[str, int], output_path: Path
+) -> None:
+    """
+    Same data as plot_overlay, but colors curves by node count instead of by
+    sheet identity, and orders the legend by node count. Helps distinguish
+    finite-size effects from protocol-level differences.
+    """
+    sheets_by_size = sorted(node_counts.keys(), key=lambda s: node_counts[s])
+    cmap = plt.cm.viridis
+    norm = plt.Normalize(vmin=min(node_counts.values()), vmax=max(node_counts.values()))
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for sheet in sheets_by_size:
+        sub = summary[summary["sheet"] == sheet].sort_values("p")
+        color = cmap(norm(node_counts[sheet]))
+        label = f"{sheet} (n={node_counts[sheet]})"
+        ax.plot(sub["p"], sub["deperc_mean"], color=color, linewidth=2, label=label)
+        ax.fill_between(
+            sub["p"],
+            sub["deperc_mean"] - sub["deperc_std"],
+            sub["deperc_mean"] + sub["deperc_std"],
+            color=color,
+            alpha=0.15,
+        )
+    ax.set_xlabel("edge removal fraction $p$")
+    ax.set_ylabel("depercolation ratio $D(G, p)$")
+    ax.set_title("Depercolation curves — colored by node count")
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(alpha=0.3)
+    ax.legend(loc="best", fontsize=9)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close(fig)
 
 def main() -> None:
     args = parse_args()
@@ -185,9 +219,11 @@ def main() -> None:
     print()
 
     all_records = []
+    node_counts: dict[str, int] = {}
     for sheet in sheet_names:
         print(f"Processing sheet: {sheet}")
         G = load_sheet_as_graph(xlsx_path, sheet)
+        node_counts[sheet] = G.number_of_nodes()
         print(f"  nodes={G.number_of_nodes()}, edges={G.number_of_edges()}")
 
         records = sweep_single_graph(G, p_values, n_realizations, rng)
@@ -213,6 +249,8 @@ def main() -> None:
         plot_per_sheet_curve(summary, sheet, figures_dir / f"curve_{sheet}.png")
     print("Rendering overlay...")
     plot_overlay(summary, figures_dir / "overlay.png")
+    print("Rendering overlay by node count...")
+    plot_overlay_by_node_count(summary, node_counts, figures_dir / "overlay_by_node_count.png")
 
     (run_dir / "run_config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
 
