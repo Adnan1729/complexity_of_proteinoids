@@ -98,7 +98,7 @@ def summarize(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def plot_per_sheet_curve(
-    summary: pd.DataFrame, sheet: str, output_path: Path
+    summary: pd.DataFrame, sheet: str, label: str, output_path: Path
 ) -> None:
     sub = summary[summary["sheet"] == sheet].sort_values("p")
 
@@ -114,7 +114,7 @@ def plot_per_sheet_curve(
     )
     ax.set_xlabel("edge removal fraction $p$")
     ax.set_ylabel("depercolation ratio $D(G, p)$")
-    ax.set_title(f"Depercolation curve — {sheet}")
+    ax.set_title(f"Depercolation curve — {label}")
     ax.set_ylim(-0.05, 1.05)
     ax.grid(alpha=0.3)
     ax.legend()
@@ -122,15 +122,15 @@ def plot_per_sheet_curve(
     plt.savefig(output_path, dpi=150)
     plt.close(fig)
 
-
-def plot_overlay(summary: pd.DataFrame, output_path: Path) -> None:
+def plot_overlay(summary: pd.DataFrame, label_map: dict, output_path: Path) -> None:
     sheets = sorted(summary["sheet"].unique())
     colors = plt.cm.tab10(np.linspace(0, 1, len(sheets)))
 
     fig, ax = plt.subplots(figsize=(8, 5))
     for sheet, color in zip(sheets, colors):
         sub = summary[summary["sheet"] == sheet].sort_values("p")
-        ax.plot(sub["p"], sub["deperc_mean"], color=color, linewidth=2, label=sheet)
+        label = label_map.get(sheet, sheet)
+        ax.plot(sub["p"], sub["deperc_mean"], color=color, linewidth=2, label=label)
         ax.fill_between(
             sub["p"],
             sub["deperc_mean"] - sub["deperc_std"],
@@ -147,15 +147,10 @@ def plot_overlay(summary: pd.DataFrame, output_path: Path) -> None:
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close(fig)
-
+    
 def plot_overlay_by_node_count(
-    summary: pd.DataFrame, node_counts: dict[str, int], output_path: Path
+    summary: pd.DataFrame, node_counts: dict, label_map: dict, output_path: Path
 ) -> None:
-    """
-    Same data as plot_overlay, but colors curves by node count instead of by
-    sheet identity, and orders the legend by node count. Helps distinguish
-    finite-size effects from protocol-level differences.
-    """
     sheets_by_size = sorted(node_counts.keys(), key=lambda s: node_counts[s])
     cmap = plt.cm.viridis
     norm = plt.Normalize(vmin=min(node_counts.values()), vmax=max(node_counts.values()))
@@ -164,7 +159,8 @@ def plot_overlay_by_node_count(
     for sheet in sheets_by_size:
         sub = summary[summary["sheet"] == sheet].sort_values("p")
         color = cmap(norm(node_counts[sheet]))
-        label = f"{sheet} (n={node_counts[sheet]})"
+        paper_label = label_map.get(sheet, sheet)
+        label = f"{paper_label} (n={node_counts[sheet]})"
         ax.plot(sub["p"], sub["deperc_mean"], color=color, linewidth=2, label=label)
         ax.fill_between(
             sub["p"],
@@ -186,6 +182,7 @@ def plot_overlay_by_node_count(
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
+    label_map = config.get("sheet_label_map", {})
 
     seed = config["reproducibility"]["seed"]
     # Use a dedicated RNG so this script's randomness is independent of other
@@ -244,14 +241,15 @@ def main() -> None:
     summary.to_csv(summary_csv, index=False)
 
     print()
+
     print("Rendering per-sheet curves...")
     for sheet in sheet_names:
-        plot_per_sheet_curve(summary, sheet, figures_dir / f"curve_{sheet}.png")
+        label = label_map.get(sheet, sheet)
+        plot_per_sheet_curve(summary, sheet, label, figures_dir / f"curve_{sheet}.png")
     print("Rendering overlay...")
-    plot_overlay(summary, figures_dir / "overlay.png")
+    plot_overlay(summary, label_map, figures_dir / "overlay.png")
     print("Rendering overlay by node count...")
-    plot_overlay_by_node_count(summary, node_counts, figures_dir / "overlay_by_node_count.png")
-
+    plot_overlay_by_node_count(summary, node_counts, label_map, figures_dir / "overlay_by_node_count.png")
     (run_dir / "run_config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
 
     print()

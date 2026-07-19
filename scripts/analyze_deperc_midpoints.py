@@ -119,6 +119,7 @@ def fit_one_sheet(sub: pd.DataFrame) -> dict:
 def plot_sigmoid_fits(
     summary: pd.DataFrame,
     fits: pd.DataFrame,
+    label_map: dict,
     output_path: Path,
 ) -> None:
     sheets = sorted(summary["sheet"].unique())
@@ -139,27 +140,22 @@ def plot_sigmoid_fits(
             d_fit = sigmoid(p_smooth, fit_row["p_c"], fit_row["k"])
             ax.plot(p_smooth, d_fit, color="#d62728", linewidth=2,
                     label=f"fit: $p_c$={fit_row['p_c']:.3f}, $k$={fit_row['k']:.2f}")
-        ax.set_title(f"{sheet} (n={int(fit_row['num_nodes'])})")
+        paper_label = label_map.get(sheet, sheet)
+        ax.set_title(f"{paper_label} (n={int(fit_row['num_nodes'])})")
         ax.set_xlabel("$p$")
         ax.set_ylabel("$D(G, p)$")
         ax.set_ylim(-0.05, 1.05)
         ax.grid(alpha=0.3)
         ax.legend(fontsize=8, loc="lower left")
 
-    # Blank any unused axes.
     for j in range(len(sheets), n_rows * n_cols):
         axs[j // n_cols][j % n_cols].axis("off")
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close(fig)
-
-
-def plot_midpoint_vs_nodes(fits: pd.DataFrame, output_path: Path) -> None:
-    """
-    The money figure: scatter of p_c vs node count, with error bars, one point
-    per sheet, plus a log-linear trend line fit across all fitted sheets.
-    """
+    
+def plot_midpoint_vs_nodes(fits: pd.DataFrame, label_map: dict, output_path: Path) -> None:
     protocol_1 = {"img1", "img2", "img3", "img4"}
     protocol_2 = {"saksham_img1", "saksham_img2"}
 
@@ -168,26 +164,20 @@ def plot_midpoint_vs_nodes(fits: pd.DataFrame, output_path: Path) -> None:
     p_c = ok["p_c"].to_numpy()
     p_c_err = ok["p_c_stderr"].to_numpy()
 
-    # Weighted linear regression of p_c vs log10(n) using p_c_stderr as weights.
-    # Model: p_c = a * log10(n) + b
     w = 1.0 / np.maximum(p_c_err ** 2, 1e-12)
     coeffs, cov = np.polyfit(log_n, p_c, deg=1, w=w, cov=True)
     slope, intercept = coeffs[0], coeffs[1]
     slope_err = float(np.sqrt(cov[0, 0]))
     intercept_err = float(np.sqrt(cov[1, 1]))
 
-    # Prediction interval on a dense grid for the shaded band.
     n_grid = np.logspace(np.log10(ok["num_nodes"].min() * 0.7),
                          np.log10(ok["num_nodes"].max() * 1.5), 200)
     log_n_grid = np.log10(n_grid)
     p_c_pred = slope * log_n_grid + intercept
-    # Propagate uncertainty of the two coefficients (ignoring covariance for a
-    # simple 1-sigma band — good enough for a paper figure).
     p_c_band = np.sqrt((log_n_grid * slope_err) ** 2 + intercept_err ** 2)
 
     fig, ax = plt.subplots(figsize=(7, 5))
 
-    # Trend line and band first, so points sit on top.
     ax.fill_between(n_grid, p_c_pred - p_c_band, p_c_pred + p_c_band,
                     color="#7f7f7f", alpha=0.2, label="±1σ trend band")
     ax.plot(n_grid, p_c_pred, color="#7f7f7f", linewidth=1.5, linestyle="--",
@@ -202,8 +192,9 @@ def plot_midpoint_vs_nodes(fits: pd.DataFrame, output_path: Path) -> None:
             row["num_nodes"], row["p_c"], yerr=row["p_c_stderr"],
             fmt=marker, color=color, markersize=9, capsize=3, zorder=5,
         )
+        paper_label = label_map.get(row["sheet"], row["sheet"])
         ax.annotate(
-            row["sheet"], (row["num_nodes"], row["p_c"]),
+            paper_label, (row["num_nodes"], row["p_c"]),
             textcoords="offset points", xytext=(7, 4), fontsize=9,
         )
 
@@ -220,7 +211,6 @@ def plot_midpoint_vs_nodes(fits: pd.DataFrame, output_path: Path) -> None:
     plt.savefig(output_path, dpi=150)
     plt.close(fig)
 
-    # Print the fit result so it shows in the console.
     print(f"  Trend fit: p_c = {slope:.4f} (±{slope_err:.4f}) log10(n) + {intercept:.4f} (±{intercept_err:.4f})")
 
 def main() -> None:
@@ -253,6 +243,7 @@ def main() -> None:
     with open(config_path) as f:
         run_config = yaml.safe_load(f)
     xlsx_path = ROOT / run_config["paths"]["raw_data"]
+    label_map = run_config.get("sheet_label_map", {})
 
     print(f"Recovering node counts from {xlsx_path}")
     node_counts: dict[str, int] = {}
@@ -287,10 +278,10 @@ def main() -> None:
 
     print()
     print("Rendering sigmoid fits...")
-    plot_sigmoid_fits(summary, fits, figures_dir / "sigmoid_fits.png")
+    plot_sigmoid_fits(summary, fits, label_map, figures_dir / "sigmoid_fits.png")
 
     print("Rendering midpoint vs node count...")
-    plot_midpoint_vs_nodes(fits, figures_dir / "midpoint_vs_nodes.png")
+    plot_midpoint_vs_nodes(fits, label_map, figures_dir / "midpoint_vs_nodes.png")
 
     print()
     print(f"Wrote: {fits_csv}")

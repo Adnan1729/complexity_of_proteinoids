@@ -14,6 +14,17 @@ empirical:
     - saksham_img1
     - saksham_img2
 
+# Map internal xlsx sheet names to the paper's figure panel labels.
+# Used by depercolation sweep + midpoint-analysis plots so figures in
+# the paper (Section V, Appendix A) use consistent naming with Figs 2 and 4.
+sheet_label_map:
+  img1: "Fig. 2(c)"
+  img2: "Fig. 2(d)"
+  img3: "Fig. 2(b)"
+  img4: "Fig. 2(a)"
+  saksham_img1: "Fig. 4(a)"
+  saksham_img2: "Fig. 4(b)"
+
 depercolation:
   # Fraction of edges randomly removed to measure the depercolation ratio.
   edge_removal_fraction: 0.9
